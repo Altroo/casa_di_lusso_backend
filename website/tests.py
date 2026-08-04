@@ -1,4 +1,5 @@
 import pytest
+from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
 from django.urls import reverse
 from rest_framework.test import APIClient
@@ -96,3 +97,18 @@ def test_newsletter_resubscribe_is_idempotent(api_client):
     assert first.status_code == 201
     assert second.status_code == 201
     assert NewsletterSubscriber.objects.filter(email="news@example.com", is_active=True).count() == 1
+
+
+@pytest.mark.django_db
+def test_admin_index_uses_casa_branding(client):
+    user = get_user_model().objects.create_superuser(
+        email="admin@example.com",
+        password="test-password",
+    )
+    client.force_login(user)
+
+    response = client.get(reverse("admin:index"))
+
+    assert response.status_code == 200
+    assert "Site d’administration | Casa di Lusso" in response.content.decode()
+    assert "Administration Casa di Lusso" in response.content.decode()
