@@ -13,6 +13,11 @@ from .models import (
 )
 
 
+admin.site.site_header = "Administration Casa di Lusso"
+admin.site.site_title = "Casa di Lusso"
+admin.site.index_title = "Site d’administration"
+
+
 class SiteSettingsAdmin(admin.ModelAdmin):
     fieldsets = (
         ("Identité", {"fields": ("brand_name",)}),
