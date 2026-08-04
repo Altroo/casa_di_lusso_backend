@@ -1,0 +1,12 @@
+{% extends "admin/base.html" %}
+
+{% block userlinks %}
+    <a href="https://casadilusso.ma/">Voir le site</a> /
+    {% if user.has_usable_password %}
+        <a href="{% url 'admin:password_change' %}">Modifier le mot de passe</a> /
+    {% endif %}
+    <form id="logout-form" method="post" action="{% url 'admin:logout' %}">
+        {% csrf_token %}
+        <button type="submit">Se déconnecter</button>
+    </form>
+{% endblock %}

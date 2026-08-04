@@ -1,0 +1,51 @@
+services:
+  web:
+    build: .
+    container_name: casa_di_lusso_web
+    restart: always
+    command: gunicorn casa_di_lusso_backend.wsgi:application --bind 0.0.0.0:8008
+    env_file:
+      - .env
+    ports:
+      - "8008:8008"
+    volumes:
+      - ./media:/app/media
+      - ./staticfiles:/app/staticfiles
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8008/api/health/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  db:
+    image: postgres:18
+    container_name: casa_di_lusso_db
+    restart: always
+    command: postgres -c max_connections=100 -c shared_buffers=128MB
+    expose:
+      - "5432"
+    env_file:
+      - .env
+    volumes:
+      - casa_di_lusso_db_data:/var/lib/postgresql
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  casa_di_lusso_db_data:
+
+networks:
+  backend:
+    driver: bridge
