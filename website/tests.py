@@ -32,7 +32,11 @@ def test_public_content_endpoint_is_available_without_authentication(api_client)
 
     assert response.status_code == 200
     assert response.data["settings"]["brand_name"] == "Casa di Lusso"
+    assert response.data["settings"]["hero_tagline"].startswith("ARCHITECTURE INTÉRIEURE")
+    assert response.data["settings"]["services_heading"] == "Des espaces pensés dans les moindres détails"
     assert "services" in response.data
+    assert response.data["services"][0]["title"] == "Design intérieur d’exception"
+    assert response.data["services"][-1]["title"] == "Gestion et suivi de projet"
     assert "portfolio" in response.data
 
 

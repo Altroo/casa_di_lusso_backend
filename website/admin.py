@@ -21,8 +21,12 @@ admin.site.index_title = "Site d’administration"
 class SiteSettingsAdmin(admin.ModelAdmin):
     fieldsets = (
         ("Identité", {"fields": ("brand_name",)}),
-        ("Héros", {"fields": ("hero_eyebrow", "hero_title", "hero_text", "hero_image")}),
+        (
+            "Héros",
+            {"fields": ("hero_eyebrow", "hero_title", "hero_text", "hero_tagline", "hero_image")},
+        ),
         ("À propos", {"fields": ("about_title", "about_text", "about_image")}),
+        ("Services", {"fields": ("services_heading", "services_intro", "services_tagline")}),
         ("Valeurs et projet", {"fields": ("values_background", "project_title", "project_image")}),
         ("Partenaires", {"fields": ("partners_intro", "partners_outro", "catalog")}),
         ("Vidéo", {"fields": ("video_title", "video_url", "video_cover")}),

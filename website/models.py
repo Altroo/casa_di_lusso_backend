@@ -28,10 +28,32 @@ class SiteSettings(models.Model):
     hero_eyebrow = models.CharField("Sur-titre du héros", max_length=120, default="CASA DI LUSSO")
     hero_title = models.CharField("Titre du héros", max_length=180, default="L’exception au quotidien")
     hero_text = models.TextField("Texte du héros")
+    hero_tagline = models.CharField(
+        "Signature du héros",
+        max_length=220,
+        default="ARCHITECTURE INTÉRIEURE  •  DESIGN  •  MOBILIER  •  SUR MESURE",
+    )
     hero_image = models.ImageField("Image du héros", upload_to="website/hero/", blank=True)
     about_title = models.CharField("Titre À propos", max_length=120, default="À propos")
     about_text = models.TextField("Texte À propos")
     about_image = models.ImageField("Image À propos", upload_to="website/about/", blank=True)
+    services_heading = models.CharField(
+        "Accroche services",
+        max_length=180,
+        default="Des espaces pensés dans les moindres détails",
+    )
+    services_intro = models.TextField(
+        "Introduction services",
+        default=(
+            "Des solutions sur mesure, de la conception à la réalisation, pour créer "
+            "des espaces élégants, fonctionnels et durables."
+        ),
+    )
+    services_tagline = models.CharField(
+        "Signature services",
+        max_length=220,
+        default="CONCEPTION  •  SÉLECTION  •  COORDINATION  •  RÉALISATION",
+    )
     project_title = models.CharField("Titre du projet", max_length=220)
     project_image = models.ImageField("Image du projet", upload_to="website/project/", blank=True)
     values_background = models.ImageField("Fond des valeurs", upload_to="website/values/", blank=True)
