@@ -43,6 +43,9 @@ def test_public_content_endpoint_is_available_without_authentication(api_client)
 @pytest.mark.django_db
 def test_site_settings_is_enforced_as_a_database_singleton():
     assert SiteSettings.objects.count() == 1
+    settings = SiteSettings.objects.get()
+    assert "Our showroom" not in settings.about_text
+    assert "Nous imaginons et réalisons" in settings.about_text
 
     with pytest.raises(IntegrityError), transaction.atomic():
         SiteSettings.objects.create(
