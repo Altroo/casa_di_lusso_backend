@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.urls import reverse
 
 from .models import (
     ContactRequest,
@@ -10,6 +11,8 @@ from .models import (
     SiteSettings,
     Testimonial,
     ValueItem,
+    PressArticle,
+    PressCategory,
 )
 
 
@@ -142,3 +145,51 @@ class NewsletterSubscriberSerializer(serializers.ModelSerializer):
             email=validated_data["email"].lower(), defaults={"is_active": True}
         )
         return subscriber
+
+
+class PressCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PressCategory
+        fields = ("id", "title", "slug")
+
+
+class PressArticleSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+    categories = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PressArticle
+        fields = ("id", "title", "slug", "categories", "excerpt", "image_url", "image_alt",
+                  "published_at", "updated_at", "is_featured")
+        read_only_fields = fields
+
+    def get_image_url(self, obj):
+        return self.article_image_url(obj, "cover", obj.image_file)
+
+    def article_image_url(self, obj, kind, field):
+        if not field:
+            return ""
+        # Versioned URLs invalidate optimized images immediately after an admin edit.
+        url = reverse("website:press-image", args=[obj.slug, kind])
+        url += f"?v={int(obj.updated_at.timestamp() * 1000000)}"
+        request = self.context.get("request")
+        return request.build_absolute_uri(url) if request else url
+
+    def get_categories(self, obj):
+        return PressCategorySerializer([category for category in obj.categories.all() if category.is_active], many=True).data
+
+
+class PressArticleDetailSerializer(PressArticleSerializer):
+    body_html = serializers.SerializerMethodField()
+    hero_image_url = serializers.SerializerMethodField()
+
+    class Meta(PressArticleSerializer.Meta):
+        fields = PressArticleSerializer.Meta.fields + ("content_title", "introduction", "body_html", "hero_image_url")
+        read_only_fields = fields
+
+    def get_body_html(self, obj):
+        from .rich_text import sanitize_article_html
+        return sanitize_article_html(obj.body_html)
+
+    def get_hero_image_url(self, obj):
+        return self.article_image_url(obj, "hero", obj.hero_image)

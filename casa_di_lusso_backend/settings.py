@@ -24,6 +24,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_CREDENTIALS = False
 ADMIN_URL_PATH = config("ADMIN_URL_PATH").strip("/")
+PUBLIC_SITE_URL = config("PUBLIC_SITE_URL", default="http://148.251.138.48:3008").rstrip("/")
 
 INSTALLED_APPS = [
     "django.contrib.admin",

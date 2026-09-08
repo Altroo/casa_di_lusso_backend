@@ -1,0 +1,49 @@
+.press-rich-text-source
+{
+    width: min(960px, 100%);
+    min-height: 420px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    line-height: 1.6;
+}
+
+.press-rich-text-source--enhanced
+{
+    min-height: 0;
+}
+
+.press-rich-text-fallback
+{
+    width: min(960px, 100%);
+    margin: 0 0 10px;
+    padding: 10px 12px;
+    border: 1px solid rgba(201, 168, 76, .38);
+    border-radius: 4px;
+    background: rgba(201, 168, 76, .08);
+    color: var(--body-fg);
+}
+
+.tox.tox-tinymce
+{
+    width: min(960px, 100%) !important;
+    border-color: var(--border-color);
+    border-radius: 4px;
+}
+
+.tox .tox-menubar,
+.tox .tox-toolbar,
+.tox .tox-toolbar__overflow,
+.tox .tox-toolbar__primary
+{
+    background: var(--darkened-bg);
+}
+
+.tox .tox-statusbar
+{
+    border-top-color: var(--border-color);
+}
+
+.tox .tox-tbtn,
+.tox .tox-mbtn
+{
+    cursor: pointer;
+}

@@ -1,4 +1,5 @@
 from django.contrib import admin
+from .forms import PressArticleAdminForm
 
 from .models import (
     ContactRequest,
@@ -10,6 +11,8 @@ from .models import (
     SiteSettings,
     Testimonial,
     ValueItem,
+    PressArticle,
+    PressCategory,
 )
 
 
@@ -71,3 +74,30 @@ admin.site.register(Partner, OrderedAdmin)
 admin.site.register(Testimonial, OrderedAdmin)
 admin.site.register(ContactRequest, ContactRequestAdmin)
 admin.site.register(NewsletterSubscriber, NewsletterSubscriberAdmin)
+
+
+@admin.register(PressCategory)
+class PressCategoryAdmin(OrderedAdmin):
+    prepopulated_fields = {"slug": ("title",)}
+
+
+@admin.register(PressArticle)
+class PressArticleAdmin(admin.ModelAdmin):
+    form = PressArticleAdminForm
+    list_display = ("title", "is_published", "is_featured", "published_at", "sort_order")
+    list_editable = ("sort_order",)
+    list_filter = ("is_published", "is_featured", "categories", "published_at")
+    search_fields = ("title", "excerpt", "body_html")
+    readonly_fields = ("slug", "created_at", "updated_at")
+    filter_horizontal = ("categories",)
+    date_hierarchy = "published_at"
+    fieldsets = (
+        ("Publication", {"fields": ("is_published", "published_at", "is_featured", "sort_order", "categories")}),
+        ("Contenu français", {"fields": ("title", "excerpt", "content_title", "introduction", "body_html")}),
+        ("Images", {"fields": ("image_file", "image_alt", "hero_image")}),
+        ("Informations", {"classes": ("collapse",), "fields": ("slug", "created_at", "updated_at")}),
+    )
+
+    def view_on_site(self, obj):
+        from django.conf import settings
+        return f"{settings.PUBLIC_SITE_URL}/press/{obj.slug}"

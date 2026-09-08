@@ -1,5 +1,7 @@
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.utils import timezone
+from django.utils.text import slugify
 
 
 class OrderedContent(models.Model):
@@ -180,3 +182,56 @@ class NewsletterSubscriber(models.Model):
 
     def __str__(self):
         return self.email
+
+
+class PressCategory(OrderedContent):
+    slug = models.SlugField("Slug", max_length=200, unique=True)
+
+    class Meta(OrderedContent.Meta):
+        verbose_name = "Catégorie presse"
+        verbose_name_plural = "Catégories presse"
+
+
+class PressArticle(models.Model):
+    title = models.CharField("Titre", max_length=220)
+    slug = models.SlugField("Slug", max_length=240, unique=True, blank=True)
+    categories = models.ManyToManyField(PressCategory, verbose_name="Catégories", related_name="articles")
+    excerpt = models.TextField("Résumé court", max_length=700)
+    content_title = models.CharField("Titre du contenu", max_length=220, blank=True)
+    introduction = models.TextField("Introduction", blank=True)
+    body_html = models.TextField("Article", blank=True)
+    image_file = models.ImageField("Image de couverture", upload_to="press/articles/", blank=True)
+    image_alt = models.CharField("Texte alternatif", max_length=220, blank=True)
+    hero_image = models.ImageField("Bannière de l’article (optionnelle)", upload_to="press/headers/", blank=True)
+    published_at = models.DateTimeField("Date de publication", default=timezone.now, db_index=True)
+    is_featured = models.BooleanField("À la une", default=False)
+    is_published = models.BooleanField("Publié", default=False, db_index=True)
+    sort_order = models.PositiveIntegerField("Ordre d’affichage", default=0)
+    created_at = models.DateTimeField("Créé le", auto_now_add=True)
+    updated_at = models.DateTimeField("Modifié le", auto_now=True)
+
+    class Meta:
+        verbose_name = "Article presse"
+        verbose_name_plural = "Articles presse"
+        ordering = ("sort_order", "-is_featured", "-published_at", "-id")
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        from .rich_text import sanitize_article_html
+
+        if not self.slug:
+            base = slugify(self.title) or "article"
+            maximum = self._meta.get_field("slug").max_length
+            self.slug = base[:maximum].strip("-")
+            existing = type(self).objects.exclude(pk=self.pk)
+            counter = 1
+            while existing.filter(slug=self.slug).exists():
+                suffix = f"-{counter}"
+                self.slug = f"{base[:maximum - len(suffix)].strip('-')}{suffix}"
+                counter += 1
+            if kwargs.get("update_fields") is not None:
+                kwargs["update_fields"] = set(kwargs["update_fields"]) | {"slug"}
+        self.body_html = sanitize_article_html(self.body_html)
+        super().save(*args, **kwargs)
