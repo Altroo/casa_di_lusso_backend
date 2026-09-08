@@ -175,3 +175,25 @@ def test_published_images_work_with_debug_off_and_change_url_after_edits(client,
     obj.is_published = False
     obj.save()
     assert client.get(first_url).status_code == 404
+
+
+def test_draft_upload_links_require_admin_permission(client, tmp_path, settings):
+    from django.core.files.base import ContentFile
+
+    settings.MEDIA_ROOT = tmp_path
+    settings.DEBUG = False
+    obj = article(is_published=False)
+    obj.image_file.save("draft.png", ContentFile(b"draft-image"))
+    url = obj.image_file.url
+    assert client.get(url).status_code == 404
+    admin = get_user_model().objects.create_superuser(email="preview@example.test", password="test-only")
+    client.force_login(admin)
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response["Cache-Control"] == "private, no-store"
+    assert b"".join(response.streaming_content) == b"draft-image"
+    assert client.get("/media/press/articles/missing.png").status_code == 404
+    client.logout()
+    obj.is_published = True
+    obj.save()
+    assert client.get(url).status_code == 200

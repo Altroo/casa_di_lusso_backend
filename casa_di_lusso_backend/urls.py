@@ -3,6 +3,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.http import JsonResponse
 from django.urls import include, path
+from website.views import PressUploadedImageView
 
 
 def health_check(_request):
@@ -12,6 +13,7 @@ def health_check(_request):
 urlpatterns = [
     path("api/health/", health_check, name="health-check"),
     path("api/website/", include("website.urls")),
+    path("media/press/<str:folder>/<str:filename>", PressUploadedImageView.as_view(), name="press-uploaded-image"),
     path(f"{settings.ADMIN_URL_PATH}/", admin.site.urls),
 ]
 

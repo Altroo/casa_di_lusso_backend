@@ -2,6 +2,7 @@ from rest_framework import generics, status
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.views import View
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
@@ -84,6 +85,33 @@ class PressArticleImageView(PublicAPIView):
             raise Http404 from None
         response["X-Content-Type-Options"] = "nosniff"
         response["Cache-Control"] = "no-cache"
+        return response
+
+
+class PressUploadedImageView(View):
+    """Make Django admin's file links work without exposing unpublished images."""
+
+    @staticmethod
+    def get(request, folder, filename):
+        field_name = {"articles": "image_file", "headers": "hero_image"}.get(folder)
+        if field_name is None:
+            raise Http404
+        articles = PressArticle.objects.filter(**{field_name: f"press/{folder}/{filename}"})
+        can_preview = request.user.is_staff and (
+            request.user.has_perm("website.view_pressarticle") or
+            request.user.has_perm("website.change_pressarticle")
+        )
+        if not can_preview:
+            articles = articles.filter(
+                is_published=True, published_at__lte=timezone.now(), categories__is_active=True,
+            )
+        article = get_object_or_404(articles.distinct())
+        try:
+            response = FileResponse(getattr(article, field_name).open("rb"))
+        except FileNotFoundError:
+            raise Http404 from None
+        response["X-Content-Type-Options"] = "nosniff"
+        response["Cache-Control"] = "private, no-store" if can_preview else "no-cache"
         return response
 
 
