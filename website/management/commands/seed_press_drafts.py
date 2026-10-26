@@ -30,9 +30,14 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         directory = options["assets_dir"]
+        images = {}
         for _, _, name, _, _ in EXAMPLES:
-            if not (directory / name).is_file():
+            image = directory / Path(name).with_suffix(".webp")
+            if not image.is_file():
+                image = directory / name
+            if not image.is_file():
                 raise CommandError(f"Image absente : {name}")
+            images[name] = image
         categories = list(PressCategory.objects.filter(is_active=True))
         if not categories:
             raise CommandError("Créez d’abord les catégories presse.")
@@ -44,7 +49,7 @@ class Command(BaseCommand):
                     "image_alt": title,
                 })
                 if created:
-                    with (directory / image).open("rb") as source:
-                        article.image_file.save(image, File(source))
+                    with images[image].open("rb") as source:
+                        article.image_file.save(images[image].name, File(source))
                     article.categories.set(categories)
                 self.stdout.write(f"{slug}: {'brouillon créé' if created else 'article existant conservé'}")
